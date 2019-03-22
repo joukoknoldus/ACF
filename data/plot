@@ -1,0 +1,3 @@
+set output "R_ARIMA_DataSet1.png"
+
+plot "R_ARIMA_DataSet1.csv"
