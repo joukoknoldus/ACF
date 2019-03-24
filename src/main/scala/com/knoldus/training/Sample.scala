@@ -11,6 +11,9 @@ import org.apache.spark.mllib.linalg.Vectors
 import com.cloudera.sparkts._
 import com.cloudera.sparkts.models.{ARIMA, ARIMAModel}
 
+//import Transformations
+import com.knoldus.training.Transformations
+                            
 object AcfJV {
 
 
@@ -42,8 +45,7 @@ object AcfJV {
 
     val homeDir=sys.env("HOME")
     val path=homeDir + "/dev/projects/TrainingSprints/TrainingSprint4/ACF_JV/data/R_ARIMA_DataSet1.csv"
-    val lines=sc.textFile(path).zipWithIndex()
-    val timeSeries=lines.map( x => (x._2, x._1.toDouble) ).sortBy( x => x._1 )
+    val timeSeries=Transformations.readFile(path, sc)
     val maxLag=10
 
     val acf=calcAcf(timeSeries, maxLag)

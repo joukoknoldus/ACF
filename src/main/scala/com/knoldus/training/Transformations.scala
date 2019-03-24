@@ -11,10 +11,10 @@ import org.apache.spark.mllib.linalg.Vectors
 import com.cloudera.sparkts._
 import com.cloudera.sparkts.models.{ARIMA, ARIMAModel}
 
-class Transformations {
+object Transformations {
 
-  def readFile(file: String): RDD[(Int, Double)] = {
-    val lines=sc.textFile(path).zipWithIndex()
+  def readFile(file: String, sc: SparkContext): RDD[(Long, Double)] = {
+    val lines=sc.textFile(file).zipWithIndex()
     lines.map( x => (x._2, x._1.toDouble) ).sortBy( x => x._1 )
   }
 
@@ -24,19 +24,19 @@ class Transformations {
 
   def lagAndJoinTimeSeries(timeSeries: RDD[(Long, Double)], lag: Int): RDD[(Long, (Double, Double))] = {
     val laggedTimeSeries=lagTimeSeries(timeSeries, lag)
-    val joinedTimeSeries=timeSeries.join(laggedTimeSeries)
+    timeSeries.join(laggedTimeSeries)
   }
 
-  def calcMeans(joinedTimeSeries: RDD[(Double, Double)]): (Double, Double) = {
+  def calcMeans(joinedTimeSeries: RDD[(Long, (Double, Double))]): (Double, Double) = {
     val reduced=joinedTimeSeries.reduce( (a, b) => (a._1, (a._2._1 + b._2._1, a._2._2 + b._2._2 ) ) )
     val mean1=reduced._2._1/joinedTimeSeries.count.toDouble
     val mean2=reduced._2._2/joinedTimeSeries.count.toDouble
     (mean1, mean2)
   }
 
-  def calcDiff(joinedTimeSeries: RDD[(Double, Double)]): RDD[(Double, Double)] = {
-    (mean1, mean2)=calcMeans(joinedTimeSeries)
-    val diff=joinedTimeSeries.map( x => (x._2._1 - mean1, x._2._2 - mean2) )
+  def calcDiff(joinedTimeSeries: RDD[(Long, (Double, Double))]): RDD[(Double, Double)] = {
+    val (mean1, mean2)=calcMeans(joinedTimeSeries)
+    joinedTimeSeries.map( x => (x._2._1 - mean1, x._2._2 - mean2) )
   }
 
   def calcCovar(diff: RDD[(Double, Double)]): RDD[(Double, Double, Double)] = {
