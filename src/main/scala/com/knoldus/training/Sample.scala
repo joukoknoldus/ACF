@@ -61,20 +61,11 @@ object AcfJV {
 
   }
 
-  def lagTimeSeries(timeSeries: RDD[(Long, Double)], lag: Int): RDD[(Long, Double)] = {
-    timeSeries.map( x => (x._1 + lag, x._2) )
-  }
-
   def calcAc(timeSeries: RDD[(Long, Double)], lag: Int): Double = {
-    val laggedTimeSeries=lagTimeSeries(timeSeries, lag)
-    val joinedTimeSeries=timeSeries.join(laggedTimeSeries)
-    val reduced=joinedTimeSeries.reduce( (a, b) => (a._1, (a._2._1 + b._2._1, a._2._2 + b._2._2 ) ) )
-    val mean1=reduced._2._1/joinedTimeSeries.count.toDouble
-    val mean2=reduced._2._2/joinedTimeSeries.count.toDouble
-    val diff=joinedTimeSeries.map( x => (x._2._1 - mean1, x._2._2 - mean2) )
-    val covar=diff.map( x => (x._1*x._1, x._2*x._2, x._1*x._2) )
-    val sums=covar.reduce( (a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3 ) )
-    sums._3/(math.sqrt(sums._1)*math.sqrt(sums._2))
+    val joinedTimeSeries=Transformations.lagAndJoinTimeSeries(timeSeries, lag)
+    val diff=Transformations.calcDiff(joinedTimeSeries)
+    val covar=Transformations.calcCovar(diff)
+    Transformations.calcCovariance(covar)
   }
 
   def calcAcf(timeSeries: RDD[(Long, Double)], maxLag: Int): IndexedSeq[Double] = {
