@@ -44,7 +44,8 @@ object AcfJV {
     spark.sparkContext.setLogLevel("WARN")
 
     val homeDir=sys.env("HOME")
-    val path=homeDir + "/dev/projects/TrainingSprints/TrainingSprint4/ACF_JV/data/R_ARIMA_DataSet1.csv"
+    //val path=homeDir + "/dev/projects/TrainingSprints/TrainingSprint4/ACF_JV/data/R_ARIMA_DataSet1.csv"
+    val path=homeDir + "/dev/projects/TrainingSprints/TrainingSprint4/ACF_JV/data/FakeData.txt"
     val timeSeries=Transformations.readFile(path, sc)
     val maxLag=10
 
